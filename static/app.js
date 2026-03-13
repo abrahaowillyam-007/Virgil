@@ -335,8 +335,7 @@ async function openDuplicatesModal() {
     }
 
     // Build UI — first item of each group is kept by default, rest are pre-checked for removal
-    let html = `<div class="dupes-scroll">
-      <p style="font-size:.8rem;color:var(--muted);margin-bottom:.75rem">
+    let html = `<p style="font-size:.8rem;color:var(--muted);margin-bottom:.75rem">
         <strong style="color:var(--red)">${res.total} duplicata(s)</strong> detectada(s) em ${res.groups.length} grupo(s).
         Marque os itens que deseja remover.
       </p>`;
@@ -355,8 +354,6 @@ async function openDuplicatesModal() {
       });
       html += `</div>`;
     });
-    html += `</div>`;
-
     content.innerHTML = html;
     actions.style.display = 'flex';
 

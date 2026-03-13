@@ -304,7 +304,23 @@ button { cursor: pointer; font-family: inherit; border: none; }
 .btn-danger:hover { background: #b91c1c; }
 .btn-danger:disabled { opacity: .5; cursor: not-allowed; }
 
-.modal-wide { width: min(600px, 95vw); max-height: 80vh; display: flex; flex-direction: column; }
+.modal-wide {
+  width: min(600px, 95vw);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;         /* garante que o modal não ultrapasse 80vh */
+}
+.modal-wide .modal-actions { flex-shrink: 0; }  /* rodapé sempre visível */
+
+/* Área de conteúdo scrollável dentro do modal */
+#dupes-content {
+  flex: 1;
+  min-height: 0;            /* essencial: permite flex child respeitar overflow */
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
 .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-shrink: 0; }
 .modal-close {
   background: none; border: none; font-size: 1.4rem; color: var(--muted);
