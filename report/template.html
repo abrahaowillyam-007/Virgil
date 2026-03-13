@@ -2,255 +2,224 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Relatório de Produtos — {{ company_name }}</title>
   <style>
     /* ─── Base ─────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @page {
+      size: A4;
+      margin: 1.2cm 1cm 1.2cm 1cm;
+    }
 
     body {
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       background: #f0f2f5;
       color: #1f2937;
       padding: 2rem;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
 
     /* ─── Header ────────────────────────────────────────────── */
     .report-header {
       background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
       color: white;
-      border-radius: 16px;
-      padding: 2rem 2.5rem;
-      margin-bottom: 2rem;
+      border-radius: 14px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 1.5rem;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 1rem;
-      box-shadow: 0 4px 24px rgba(37,99,235,.25);
+      gap: 1.25rem;
+      break-inside: avoid;
     }
 
-    .report-header h1 {
-      font-size: 1.75rem;
+    .header-logo {
+      height: 56px;
+      object-fit: contain;
+      border-radius: 8px;
+      background: rgba(255,255,255,.15);
+      padding: 6px;
+      flex-shrink: 0;
+    }
+
+    .header-text h1 {
+      font-size: 1.5rem;
       font-weight: 700;
       letter-spacing: -0.02em;
     }
 
-    .report-header .meta {
-      font-size: 0.875rem;
-      opacity: 0.85;
-      margin-top: 0.25rem;
+    .header-text .meta {
+      font-size: 0.8rem;
+      opacity: 0.8;
+      margin-top: 0.2rem;
     }
-
-    /* ─── PDF Button ─────────────────────────────────────────── */
-    .btn-pdf {
-      background: white;
-      color: #1e3a5f;
-      border: none;
-      border-radius: 10px;
-      padding: 0.65rem 1.4rem;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,.15);
-      transition: transform 0.15s, box-shadow 0.15s;
-      text-decoration: none;
-    }
-
-    .btn-pdf:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 14px rgba(0,0,0,.2);
-    }
-
-    /* ─── Summary bar ─────────────────────────────────────────── */
-    .summary {
-      background: white;
-      border-radius: 12px;
-      padding: 1rem 1.5rem;
-      margin-bottom: 2rem;
-      font-size: 0.9rem;
-      color: #4b5563;
-      box-shadow: 0 1px 4px rgba(0,0,0,.07);
-    }
-
-    .summary strong { color: #1e3a5f; }
 
     /* ─── Product Grid ───────────────────────────────────────── */
+    /*
+      Usamos display:block + float para máxima compatibilidade de
+      quebra de página no Chromium headless (CSS Grid não respeita
+      break-inside em todos os contextos de impressão).
+    */
     .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 1.5rem;
+      /* clearfix */
+    }
+    .grid::after {
+      content: "";
+      display: table;
+      clear: both;
     }
 
     /* ─── Card ───────────────────────────────────────────────── */
     .card {
+      float: left;
+      width: calc(25% - 0.6rem);
+      margin: 0 0.4rem 0.8rem 0.2rem;
       background: white;
-      border-radius: 14px;
+      border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0 2px 10px rgba(0,0,0,.08);
-      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,.09);
       display: flex;
       flex-direction: column;
-    }
-
-    .card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 24px rgba(0,0,0,.12);
-    }
-
-    .card-number {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: rgba(37,99,235,.85);
-      color: white;
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 20px;
-      backdrop-filter: blur(4px);
+      break-inside: avoid;
+      page-break-inside: avoid;
     }
 
     .card-image-wrap {
       position: relative;
       width: 100%;
-      aspect-ratio: 1 / 1;
+      padding-top: 100%; /* square */
       background: #f8f9fa;
       overflow: hidden;
     }
 
     .card-image-wrap img {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       object-fit: contain;
-      padding: 12px;
-      transition: transform 0.3s;
+      padding: 10px;
     }
 
-    .card:hover .card-image-wrap img {
-      transform: scale(1.04);
+    .card-number {
+      position: absolute;
+      top: 7px;
+      left: 7px;
+      background: rgba(37,99,235,.85);
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 20px;
+      z-index: 1;
     }
 
     .card-body {
-      padding: 1rem;
+      padding: 0.6rem 0.7rem 0.7rem;
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.3rem;
     }
 
     .card-description {
-      font-size: 0.82rem;
-      line-height: 1.5;
+      font-size: 0.7rem;
+      line-height: 1.45;
       color: #374151;
       flex: 1;
     }
 
     .card-ref {
-      font-size: 0.75rem;
+      font-size: 0.62rem;
       color: #6b7280;
       background: #f3f4f6;
-      padding: 3px 8px;
-      border-radius: 6px;
+      padding: 2px 6px;
+      border-radius: 4px;
       align-self: flex-start;
       font-family: monospace;
     }
 
-    /* ─── Print / PDF ────────────────────────────────────────── */
-    @media print {
-      body {
-        background: white;
-        padding: 0;
-        font-size: 10pt;
-      }
-
-      .btn-pdf { display: none !important; }
-
-      .report-header {
-        border-radius: 0;
-        margin-bottom: 1cm;
-        break-inside: avoid;
-      }
-
-      .summary {
-        border-radius: 0;
-        box-shadow: none;
-        margin-bottom: 0.5cm;
-      }
-
-      .grid {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.4cm;
-      }
-
-      .card {
-        box-shadow: none;
-        border: 1px solid #e5e7eb;
-        border-radius: 6px;
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-
-      .card:hover {
-        transform: none;
-        box-shadow: none;
-      }
-
-      .card-image-wrap {
-        aspect-ratio: 1 / 1;
-      }
-
-      .card-description {
-        font-size: 7.5pt;
-      }
-
-      .card-ref {
-        font-size: 7pt;
-      }
+    /* ─── Screen-only (não aparece no PDF) ───────────────────── */
+    @media screen {
+      body { background: #f0f2f5; }
+      .card { box-shadow: 0 2px 10px rgba(0,0,0,.08); transition: transform .2s; }
+      .card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.12); }
+      .screen-only { display: flex; }
     }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .screen-only { display: none !important; }
+      .card { box-shadow: none; border: 1px solid #e5e7eb; }
+    }
+
+    /* ─── Screen toolbar ─────────────────────────────────────── */
+    .screen-only {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(255,255,255,.95);
+      backdrop-filter: blur(8px);
+      padding: 0.75rem 2rem;
+      gap: 0.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      margin: -2rem -2rem 1.5rem -2rem;
+      align-items: center;
+    }
+
+    .screen-only span {
+      flex: 1;
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+
+    .btn-print {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.5rem 1.1rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .btn-print:hover { background: #1d4ed8; }
   </style>
 </head>
 <body>
 
-  <!-- Header -->
-  <header class="report-header">
-    {% if logo_b64 %}
-    <img src="{{ logo_b64 }}" alt="Logo" style="height:56px;object-fit:contain;border-radius:8px;background:rgba(255,255,255,.15);padding:6px;" />
-    {% endif %}
-    <div>
-      <h1>{{ company_name }}</h1>
-      {% if cnpj %}<p class="meta" style="font-size:.8rem;opacity:.7;margin-bottom:.1rem">CNPJ: {{ cnpj }}</p>{% endif %}
-      <p class="meta">Relatório de Produtos &nbsp;·&nbsp; {{ total }} item{% if total != 1 %}ns{% endif %}</p>
-    </div>
-    <button class="btn-pdf" onclick="window.print()">
-      <!-- printer icon -->
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-        <rect x="6" y="14" width="12" height="8"/>
-      </svg>
-      Exportar PDF
+  <!-- Toolbar visível só na tela (não no PDF) -->
+  <div class="screen-only">
+    <span>{{ company_name }}{% if cnpj %} · CNPJ: {{ cnpj }}{% endif %} · {{ total }} produto{% if total != 1 %}s{% endif %}</span>
+    <button class="btn-print" onclick="window.print()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Imprimir
     </button>
-  </header>
-
-  <!-- Summary -->
-  <div class="summary">
-    Total de <strong>{{ total }} produto{% if total != 1 %}s{% endif %}</strong> cadastrados para <strong>{{ company_name }}</strong>.
   </div>
 
-  <!-- Products Grid -->
+  <!-- Header do relatório (aparece no PDF) -->
+  <header class="report-header">
+    {% if logo_b64 %}
+    <img class="header-logo" src="{{ logo_b64 }}" alt="Logo" />
+    {% endif %}
+    <div class="header-text">
+      <h1>{{ company_name }}</h1>
+      {% if cnpj %}<p class="meta">CNPJ: {{ cnpj }}</p>{% endif %}
+      <p class="meta">Relatório de Produtos · {{ total }} item{% if total != 1 %}ns{% endif %}</p>
+    </div>
+  </header>
+
+  <!-- Grade de produtos -->
   <div class="grid">
     {% for p in products %}
     <div class="card">
       <div class="card-image-wrap">
         <span class="card-number">#{{ p.number }}</span>
-        <img
-          src="{{ image_to_base64(p.image_path) }}"
-          alt="{{ p.description[:60] }}"
-          loading="lazy"
-        />
+        <img src="{{ image_to_base64(p.image_path) }}" alt="{{ p.description[:60] }}" />
       </div>
       <div class="card-body">
         <p class="card-description">{{ p.description }}</p>

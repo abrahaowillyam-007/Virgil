@@ -469,19 +469,43 @@ function pollIfSearching() {
   }).catch(() => {});
 }
 
-/* ── Export report ───────────────────────────────────── */
-async function exportReport() {
-  // Auto-save company info first
+/* ── Export ──────────────────────────────────────────── */
+async function exportHTML() {
   await saveProject();
+  const a = document.createElement('a');
+  a.href = `/api/projects/${currentProjectId}/export`;
+  a.download = '';
+  a.click();
+  toast('HTML exportado!', 'success');
+}
+
+async function exportPDF() {
+  await saveProject();
+  const btn = document.getElementById('btn-export-pdf');
+  const original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<svg class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Gerando…`;
+
   try {
-    const url = `/api/projects/${currentProjectId}/export`;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = '';
+    // Fetch como blob para fazer download direto
+    const resp = await fetch(`/api/projects/${currentProjectId}/export-pdf`);
+    if (!resp.ok) {
+      const err = await resp.text();
+      throw new Error(err);
+    }
+    const blob = await resp.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `relatorio.pdf`;
     a.click();
-    toast('Relatório exportado!', 'success');
+    URL.revokeObjectURL(url);
+    toast('PDF gerado e baixado!', 'success');
   } catch (e) {
-    toast('Erro ao exportar: ' + e.message, 'error');
+    toast('Erro ao gerar PDF: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = original;
   }
 }
 

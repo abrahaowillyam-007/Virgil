@@ -3,6 +3,7 @@
 
 import io
 import json
+import re
 import sys
 import threading
 import time
@@ -289,24 +290,62 @@ def get_search_progress(project_id: str):
 
 # ── Export ────────────────────────────────────────────────────
 
-@app.get("/api/projects/{project_id}/export")
-def export_report(project_id: str):
-    project = load_project(project_id)
-    if not project:
-        raise HTTPException(404)
-    output_path = f"output/report_{project_id}.html"
+def _html_path(project_id: str) -> Path:
+    return Path(f"output/report_{project_id}.html").absolute()
+
+def _pdf_path(project_id: str) -> Path:
+    return Path(f"output/report_{project_id}.pdf").absolute()
+
+def _build_html(project) -> str:
+    html_path = _html_path(project.id)
     generate_report(
         company_name=project.company.name,
         products=project.products,
-        output_path=output_path,
+        output_path=str(html_path),
         cnpj=project.company.cnpj,
         logo_path=project.company.logo_path,
     )
-    return FileResponse(
-        output_path,
-        filename=f"relatorio_{project.company.name[:20].strip()}.html",
-        media_type="text/html",
-    )
+    return str(html_path)
+
+
+@app.get("/api/projects/{project_id}/export")
+def export_html(project_id: str):
+    project = load_project(project_id)
+    if not project:
+        raise HTTPException(404)
+    html_path = _build_html(project)
+    safe_name = re.sub(r"[^\w\s-]", "", project.company.name)[:30].strip()
+    return FileResponse(html_path, filename=f"relatorio_{safe_name}.html", media_type="text/html")
+
+
+@app.get("/api/projects/{project_id}/export-pdf")
+def export_pdf(project_id: str):
+    project = load_project(project_id)
+    if not project:
+        raise HTTPException(404)
+
+    html_path = _build_html(project)
+    pdf_path = _pdf_path(project_id)
+    safe_name = re.sub(r"[^\w\s-]", "", project.company.name)[:30].strip()
+
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        raise HTTPException(500, "Playwright não instalado. Execute: pip3 install playwright && python3 -m playwright install chromium")
+
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch()
+        page = browser.new_page()
+        page.goto(f"file://{html_path}", wait_until="networkidle")
+        page.pdf(
+            path=str(pdf_path),
+            format="A4",
+            print_background=True,
+            margin={"top": "1.2cm", "bottom": "1.2cm", "left": "1cm", "right": "1cm"},
+        )
+        browser.close()
+
+    return FileResponse(str(pdf_path), filename=f"relatorio_{safe_name}.pdf", media_type="application/pdf")
 
 
 # ── Run ───────────────────────────────────────────────────────
