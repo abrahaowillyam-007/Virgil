@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+
+# Ambiente
+.env
+.env.*
+
+# Saída gerada
+output/
+
+# Projetos salvos (dados do usuário)
+projects/
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# Editores
+.vscode/
+.idea/
+*.swp

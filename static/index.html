@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Virgil</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <!-- ── HOME ──────────────────────────────────────────── -->
+  <div id="view-home" class="view">
+    <header class="home-header">
+      <div class="home-logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        Virgil
+      </div>
+      <button class="btn-primary" onclick="openNewProjectModal()">+ Novo Projeto</button>
+    </header>
+
+    <main class="home-main">
+      <div id="home-empty" class="empty-state hidden">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <p>Nenhum projeto ainda.</p>
+        <button class="btn-primary" onclick="openNewProjectModal()">Criar primeiro projeto</button>
+      </div>
+      <div id="projects-grid" class="projects-grid"></div>
+    </main>
+  </div>
+
+  <!-- ── EDITOR ─────────────────────────────────────────── -->
+  <div id="view-editor" class="view hidden">
+    <header class="editor-header">
+      <button class="btn-back" onclick="navigate('home')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Projetos
+      </button>
+      <span id="editor-title" class="editor-title"></span>
+      <div class="editor-header-actions">
+        <button class="btn-ghost" onclick="saveProject()" id="btn-save">Salvar</button>
+        <button class="btn-primary" onclick="exportReport()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Exportar HTML
+        </button>
+      </div>
+    </header>
+
+    <div class="editor-layout">
+
+      <!-- Sidebar -->
+      <aside class="editor-sidebar">
+        <section class="sidebar-section">
+          <h3 class="sidebar-label">Empresa</h3>
+
+          <!-- Logo upload -->
+          <div class="logo-upload-area" id="logo-drop" onclick="document.getElementById('logo-input').click()">
+            <img id="logo-preview" src="" alt="" class="hidden" />
+            <div id="logo-placeholder">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <span>Clique para adicionar logo</span>
+            </div>
+          </div>
+          <input type="file" id="logo-input" accept=".png,.jpg,.jpeg,.svg" hidden />
+
+          <input class="field" type="text" id="field-name" placeholder="Razão Social" />
+          <input class="field" type="text" id="field-cnpj" placeholder="CNPJ" />
+        </section>
+
+        <section class="sidebar-section">
+          <h3 class="sidebar-label">Produtos</h3>
+          <button class="btn-sidebar" onclick="document.getElementById('txt-input').click()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            Importar TXT
+          </button>
+          <input type="file" id="txt-input" accept=".txt" multiple hidden />
+
+          <button class="btn-sidebar btn-paste-toggle" id="btn-paste-toggle" onclick="togglePasteArea()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/></svg>
+            Colar lista de texto
+          </button>
+
+          <div id="paste-area" class="paste-area hidden">
+            <textarea id="paste-textarea" placeholder="Cole aqui a lista de produtos&#10;&#10;Formatos aceitos:&#10;1-Descrição do produto&#10;1. Descrição do produto&#10;1) Descrição do produto" rows="8"></textarea>
+            <div id="paste-preview" class="paste-preview hidden"></div>
+            <div class="paste-actions">
+              <button class="btn-ghost btn-sm" onclick="previewPaste()">Pré-visualizar</button>
+              <button class="btn-primary btn-sm" onclick="importPaste()" id="btn-import-paste">Importar</button>
+            </div>
+          </div>
+
+          <button class="btn-sidebar btn-search" id="btn-search" onclick="startImageSearch()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Buscar Imagens
+          </button>
+
+          <div id="search-progress-wrap" class="hidden">
+            <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+            <p id="progress-text" class="progress-text">0 / 0</p>
+            <p id="progress-current" class="progress-current"></p>
+          </div>
+        </section>
+
+        <section class="sidebar-section sidebar-stats">
+          <div class="stat">
+            <span id="stat-total" class="stat-num">0</span>
+            <span class="stat-label">produtos</span>
+          </div>
+          <div class="stat">
+            <span id="stat-with-image" class="stat-num">0</span>
+            <span class="stat-label">com imagem</span>
+          </div>
+        </section>
+      </aside>
+
+      <!-- Products area -->
+      <main class="products-area">
+        <div id="products-grid" class="products-grid"></div>
+        <div id="products-empty" class="empty-state hidden">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <p>Adicione um arquivo TXT para começar.</p>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ── MODAL: NOVO PROJETO ─────────────────────────────── -->
+  <div id="modal-backdrop" class="modal-backdrop hidden" onclick="closeModal()"></div>
+  <div id="modal-new-project" class="modal hidden">
+    <h2 class="modal-title">Novo Projeto</h2>
+    <form id="form-new-project" onsubmit="submitNewProject(event)">
+      <div class="modal-logo-upload" id="modal-logo-drop" onclick="document.getElementById('modal-logo-input').click()">
+        <img id="modal-logo-preview" src="" alt="" class="hidden" />
+        <div id="modal-logo-placeholder">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span>Logo da empresa (opcional)</span>
+        </div>
+      </div>
+      <input type="file" id="modal-logo-input" accept=".png,.jpg,.jpeg,.svg" hidden />
+
+      <input class="field" type="text" id="modal-name" placeholder="Razão Social *" required />
+      <input class="field" type="text" id="modal-cnpj" placeholder="CNPJ (opcional)" />
+
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn-primary">Criar Projeto</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Hidden file input for per-product image replacement -->
+  <input type="file" id="image-replace-input" accept="image/*" hidden />
+
+  <!-- Toast notifications -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
