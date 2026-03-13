@@ -60,16 +60,14 @@
     /* ── Grade de produtos ──────────────────────────────── */
     /*
       A4 útil = 190mm de largura.
-      4 colunas × 46mm + 3 gaps × 2.67mm ≈ 190mm
-      Altura fixa do card: 62mm  (imagem 42mm + texto 20mm)
-      Linha completa = 62mm + 3mm gap = 65mm
-      Disponível após cabeçalho (~30mm): 245mm → 3 linhas na pág 1
-      Páginas seguintes (275mm): 4 linhas × 65mm = 260mm ✓
+      4 colunas com gap de 3mm.
+      Altura das linhas é automática: cada linha assume a altura
+      do card mais alto nela — todos os cards da linha ficam iguais
+      e o texto é exibido por completo, sem cortes.
     */
     .grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      grid-auto-rows: 62mm;
       gap: 3mm;
     }
 
@@ -128,25 +126,19 @@
       color: #cbd5e1;
     }
 
-    /* Área de texto — ocupa o restante (20mm) */
+    /* Área de texto — cresce conforme o conteúdo */
     .card-body {
       flex: 1;
       padding: 2mm 3mm 2.5mm;
       display: flex;
       flex-direction: column;
       gap: 1mm;
-      overflow: hidden;
     }
 
     .card-desc {
       font-size: 6.5pt;
-      line-height: 1.35;
+      line-height: 1.4;
       color: #374151;
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      flex: 1;
     }
 
     .card-ref {
@@ -189,7 +181,7 @@
 
       .card-img { flex: 0 0 0; padding-top: 100%; }
 
-      .card-desc { -webkit-line-clamp: 4; font-size: 7.5pt; }
+      .card-desc { font-size: 7.5pt; }
 
       .screen-toolbar {
         display: flex;
