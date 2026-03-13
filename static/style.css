@@ -287,6 +287,63 @@ button { cursor: pointer; font-family: inherit; border: none; }
 .btn-search:hover { background: #dbeafe; }
 .btn-search:disabled { opacity: .5; cursor: not-allowed; }
 
+.btn-dupes { color: #b45309; border-color: #d97706; background: #fffbeb; }
+.btn-dupes:hover { background: #fef3c7; }
+
+.btn-danger {
+  background: var(--red);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-danger:hover { background: #b91c1c; }
+.btn-danger:disabled { opacity: .5; cursor: not-allowed; }
+
+.modal-wide { width: min(600px, 95vw); max-height: 80vh; display: flex; flex-direction: column; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-shrink: 0; }
+.modal-close {
+  background: none; border: none; font-size: 1.4rem; color: var(--muted);
+  cursor: pointer; line-height: 1; padding: 2px 6px; border-radius: 4px;
+}
+.modal-close:hover { background: var(--bg); color: var(--text); }
+
+.dupes-scroll { overflow-y: auto; flex: 1; padding-right: 4px; }
+
+.dupe-group {
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  background: #fffbeb;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+.dupe-group-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #92400e;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-bottom: 0.5rem;
+}
+.dupe-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.45rem 0;
+  border-top: 1px solid #fef3c7;
+  font-size: 0.82rem;
+  color: var(--text);
+}
+.dupe-item:first-of-type { border-top: none; }
+.dupe-item input[type=checkbox] { margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+.dupe-item label { cursor: pointer; flex: 1; line-height: 1.45; }
+.dupe-item .dupe-num { font-weight: 700; color: var(--blue); flex-shrink: 0; min-width: 28px; }
+.dupe-item .dupe-ref { font-size: 0.72rem; font-family: monospace; color: var(--muted); margin-left: 4px; }
+
 /* ── Paste area ──────────────────────────────────────── */
 .btn-paste-toggle {
   color: #7c3aed;

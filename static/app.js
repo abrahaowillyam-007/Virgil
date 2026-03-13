@@ -35,6 +35,15 @@ const api = {
     if (!r.ok) throw new Error(await r.text());
     return r.json();
   },
+  async del_body(url, body) {
+    const r = await fetch(url, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  },
 };
 
 /* ── Toast ─────────────────────────────────────────────── */
@@ -102,6 +111,11 @@ function openNewProjectModal() {
   document.getElementById('modal-backdrop').classList.remove('hidden');
   document.getElementById('modal-new-project').classList.remove('hidden');
   document.getElementById('modal-name').focus();
+}
+
+function closeAllModals() {
+  closeModal();
+  closeDuplicatesModal();
 }
 
 function closeModal() {
@@ -297,6 +311,97 @@ document.getElementById('txt-input').addEventListener('change', async function (
   }
   this.value = '';
 });
+
+/* ── Duplicates ──────────────────────────────────────── */
+async function openDuplicatesModal() {
+  const content = document.getElementById('dupes-content');
+  const actions = document.getElementById('dupes-actions');
+  content.innerHTML = '<p style="color:var(--muted);font-size:.875rem;padding:.5rem 0">Verificando...</p>';
+  actions.style.display = 'none';
+  document.getElementById('modal-backdrop').classList.remove('hidden');
+  document.getElementById('modal-dupes').classList.remove('hidden');
+
+  try {
+    const res = await api.get(`/api/projects/${currentProjectId}/duplicates`);
+
+    if (res.groups.length === 0) {
+      content.innerHTML = `
+        <div style="text-align:center;padding:2rem 1rem;color:var(--muted)">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.8" style="margin-bottom:.75rem"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <p style="font-size:.9rem;color:#16a34a;font-weight:600">Nenhuma duplicata encontrada!</p>
+          <p style="font-size:.8rem;margin-top:.25rem">Todos os produtos são únicos.</p>
+        </div>`;
+      return;
+    }
+
+    // Build UI — first item of each group is kept by default, rest are pre-checked for removal
+    let html = `<div class="dupes-scroll">
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:.75rem">
+        <strong style="color:var(--red)">${res.total} duplicata(s)</strong> detectada(s) em ${res.groups.length} grupo(s).
+        Marque os itens que deseja remover.
+      </p>`;
+
+    res.groups.forEach((group, gi) => {
+      html += `<div class="dupe-group"><p class="dupe-group-title">Grupo ${gi + 1} — ${group.length} produtos iguais</p>`;
+      group.forEach((p, pi) => {
+        const checked = pi > 0 ? 'checked' : '';  // keep first, remove rest by default
+        const ref = p.reference && p.reference !== 'S/N' ? `<span class="dupe-ref">Ref: ${esc(p.reference)}</span>` : '';
+        html += `
+          <div class="dupe-item">
+            <input type="checkbox" id="dupe-${p.number}" value="${p.number}" ${checked} />
+            <span class="dupe-num">#${p.number}</span>
+            <label for="dupe-${p.number}">${esc(p.description)}${ref}</label>
+          </div>`;
+      });
+      html += `</div>`;
+    });
+    html += `</div>`;
+
+    content.innerHTML = html;
+    actions.style.display = 'flex';
+
+    // Update button label reactively
+    content.addEventListener('change', updateRemoveCount);
+    updateRemoveCount();
+  } catch (e) {
+    content.innerHTML = `<p style="color:var(--red)">${e.message}</p>`;
+  }
+}
+
+function updateRemoveCount() {
+  const checked = document.querySelectorAll('#dupes-content input[type=checkbox]:checked');
+  const btn = document.getElementById('btn-remove-dupes');
+  btn.disabled = checked.length === 0;
+  btn.textContent = checked.length > 0
+    ? `Remover ${checked.length} produto(s)`
+    : 'Nenhum selecionado';
+}
+
+async function removeSelectedDuplicates() {
+  const checked = Array.from(document.querySelectorAll('#dupes-content input[type=checkbox]:checked'));
+  const numbers = checked.map(el => parseInt(el.value));
+  if (!numbers.length) return;
+
+  const btn = document.getElementById('btn-remove-dupes');
+  btn.disabled = true;
+
+  try {
+    const res = await api.del_body(`/api/projects/${currentProjectId}/products/bulk`, { numbers });
+    toast(`${res.removed} duplicata(s) removida(s).`, 'success');
+    closeDuplicatesModal();
+    currentProject = await api.get(`/api/projects/${currentProjectId}`);
+    renderProducts();
+    updateStats();
+  } catch (e) {
+    toast('Erro: ' + e.message, 'error');
+    btn.disabled = false;
+  }
+}
+
+function closeDuplicatesModal() {
+  document.getElementById('modal-backdrop').classList.add('hidden');
+  document.getElementById('modal-dupes').classList.add('hidden');
+}
 
 /* ── Paste area ──────────────────────────────────────── */
 function togglePasteArea() {

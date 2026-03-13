@@ -225,6 +225,42 @@ async def replace_product_image(
     return {"image_url": f"/projects-data/{project_id}/images/product_{product_num:03d}.jpg"}
 
 
+@app.get("/api/projects/{project_id}/duplicates")
+def get_duplicates(project_id: str):
+    project = load_project(project_id)
+    if not project:
+        raise HTTPException(404)
+
+    def normalize(text: str) -> str:
+        t = text.lower().strip()
+        t = re.sub(r"\s+", " ", t)
+        t = re.sub(r"[^\w\s]", "", t)
+        return t
+
+    seen = {}
+    for p in project.products:
+        key = normalize(p.description)
+        seen.setdefault(key, []).append(p)
+
+    groups = [
+        [{"number": p.number, "description": p.description, "reference": p.reference} for p in group]
+        for group in seen.values() if len(group) > 1
+    ]
+    return {"groups": groups, "total": sum(len(g) - 1 for g in groups)}
+
+
+@app.delete("/api/projects/{project_id}/products/bulk")
+async def delete_products_bulk(project_id: str, data: dict):
+    project = load_project(project_id)
+    if not project:
+        raise HTTPException(404)
+    numbers = set(data.get("numbers", []))
+    before = len(project.products)
+    project.products = [p for p in project.products if p.number not in numbers]
+    save_project(project)
+    return {"removed": before - len(project.products), "total": len(project.products)}
+
+
 @app.delete("/api/projects/{project_id}/products/{product_num}")
 def delete_product(project_id: str, product_num: int):
     project = load_project(project_id)

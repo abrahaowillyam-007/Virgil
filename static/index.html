@@ -92,6 +92,11 @@
             </div>
           </div>
 
+          <button class="btn-sidebar btn-dupes" id="btn-dupes" onclick="openDuplicatesModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Filtrar Duplicatas
+          </button>
+
           <button class="btn-sidebar btn-search" id="btn-search" onclick="startImageSearch()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             Buscar Imagens
@@ -128,7 +133,7 @@
   </div>
 
   <!-- ── MODAL: NOVO PROJETO ─────────────────────────────── -->
-  <div id="modal-backdrop" class="modal-backdrop hidden" onclick="closeModal()"></div>
+  <div id="modal-backdrop" class="modal-backdrop hidden" onclick="closeAllModals()"></div>
   <div id="modal-new-project" class="modal hidden">
     <h2 class="modal-title">Novo Projeto</h2>
     <form id="form-new-project" onsubmit="submitNewProject(event)">
@@ -149,6 +154,21 @@
         <button type="submit" class="btn-primary">Criar Projeto</button>
       </div>
     </form>
+  </div>
+
+  <!-- ── MODAL: DUPLICATAS ───────────────────────────────── -->
+  <div id="modal-dupes" class="modal modal-wide hidden">
+    <div class="modal-header">
+      <h2 class="modal-title">Filtrar Duplicatas</h2>
+      <button class="modal-close" onclick="closeDuplicatesModal()">×</button>
+    </div>
+    <div id="dupes-content"></div>
+    <div class="modal-actions" id="dupes-actions" style="display:none">
+      <button class="btn-ghost" onclick="closeDuplicatesModal()">Cancelar</button>
+      <button class="btn-danger" onclick="removeSelectedDuplicates()" id="btn-remove-dupes">
+        Remover selecionados
+      </button>
+    </div>
   </div>
 
   <!-- Hidden file input for per-product image replacement -->
